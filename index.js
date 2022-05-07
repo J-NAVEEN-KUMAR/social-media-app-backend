@@ -1,15 +1,18 @@
+//importing packages
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const helmet = require("helmet");
 const morgan = require("morgan");
-const userRouter = require("./routes/users");
-const authRouter = require("./routes/auth");
-const postRouter = require("./routes/posts");
 const multer = require("multer");
 const path = require("path");
 const cors = require("cors");
+
+//importing routes
+const userRouter = require("./routes/users");
+const authRouter = require("./routes/auth");
+const postRouter = require("./routes/posts");
 
 //middleWare
 app.use(express.json());
@@ -22,6 +25,7 @@ app.use(helmet());
 app.use(morgan("common"));
 app.use("/images", express.static(path.join(__dirname, "public/images")));
 
+//using multer to upload and store images
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "public/images/");
@@ -59,6 +63,7 @@ app.use("/api/users", userRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/posts", postRouter);
 
-app.listen(8800, () => {
-  console.log("Backend server is running");
+const port = process.env.PORT || 8800
+app.listen(port, () => {
+  console.log(`Backend server is running at ${port}`);
 });

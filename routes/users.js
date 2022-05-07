@@ -42,7 +42,7 @@ router.delete("/:id", async (req, res) => {
 });
 
 //Get User
-router.get("/", async (req, res) => {
+router.get("/:userId", async (req, res) => {
   const userId = req.query.userId;
   const username = req.query.username;
   try {
@@ -51,6 +51,28 @@ router.get("/", async (req, res) => {
       : await User.findByOne({ username: username });
     const { password, updatedAt, ...other } = user._doc;
     res.status(200).json(other);
+  } catch (error) {
+    res.status(500).json(error);
+  }
+});
+
+//get friends
+router.get("/friends/:userId", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId);
+    const friends = await Promise.all(
+      user.followings.map((friendId) => {
+        return User.findById(friendId);
+      })
+    );
+    console.log(friends);
+    let friendList = [];
+    friends.map((friend) => {
+      const { _id, username, profilePicture } = friend;
+      friendList.push({ _id, username, profilePicture });
+    });
+    console.log(friendList);
+    res.status(200).json(friendList);
   } catch (error) {
     res.status(500).json(error);
   }
@@ -65,7 +87,7 @@ router.put("/:id/follow", async (req, res) => {
       if (!user.followers.includes(req.body.userId)) {
         await User.updateOne({ $push: { followers: req.body.userId } });
         await currentUser.updateOne({ $push: { following: req.params.id } });
-        res.status(200).json("Followed!");
+        res.status(200).json("You are following this user!");
       } else {
         res.status(403).json("Already followed");
       }
@@ -86,7 +108,7 @@ router.put("/:id/unfollow", async (req, res) => {
       if (user.followers.includes(req.body.userId)) {
         await User.updateOne({ $pull: { followers: req.body.userId } });
         await currentUser.updateOne({ $pull: { following: req.params.id } });
-        res.status(200).json("Unfollowed!");
+        res.status(200).json("You unfollowed this user!");
       } else {
         res.status(403).json("You don't follow this user");
       }
