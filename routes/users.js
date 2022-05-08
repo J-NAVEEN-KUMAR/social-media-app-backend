@@ -83,7 +83,7 @@ router.put("/:id/follow", async (req, res) => {
       const user = await User.findById(req.params.id);
       const currentUser = await User.findById(req.body.userId);
       if (!user.followers.includes(req.body.userId)) {
-        await User.updateOne({ $push: { followers: req.body.userId } });
+        await user.updateOne({ $push: { followers: req.body.userId } });
         await currentUser.updateOne({ $push: { following: req.params.id } });
         res.status(200).json("You are following this user!");
       } else {
@@ -104,7 +104,7 @@ router.put("/:id/unfollow", async (req, res) => {
       const user = await User.findById(req.params.id);
       const currentUser = await User.findById(req.body.userId);
       if (user.followers.includes(req.body.userId)) {
-        await User.updateOne({ $pull: { followers: req.body.userId } });
+        await user.updateOne({ $pull: { followers: req.body.userId } });
         await currentUser.updateOne({ $pull: { following: req.params.id } });
         res.status(200).json("You unfollowed this user!");
       } else {
@@ -113,6 +113,22 @@ router.put("/:id/unfollow", async (req, res) => {
     } else {
       res.status(403).json("You cannot unfollow yourself");
     }
+  } catch (error) {
+    res.status(500).json(error);
+  }
+});
+
+//get all users
+router.get("/all", async (req, res) => {
+  try {
+    const users = await User.find({});
+    let allUsers = [];
+    users.map((user) => {
+      const { _id, username, profilePicture } = user;
+      allUsers.push({ _id, username, profilePicture });
+    });
+    res.status(200).json(allUsers);
+    // console.log(allUsers);
   } catch (error) {
     res.status(500).json(error);
   }
