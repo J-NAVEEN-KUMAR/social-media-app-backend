@@ -8,12 +8,14 @@ const userSchema = new mongoose.Schema(
       min: 3,
       max: 20,
       unique: true,
+      trim: true,
     },
     email: {
       type: String,
       required: true,
       max: 50,
       unique: true,
+      trim: true,
     },
     password: {
       type: String,
@@ -43,14 +45,17 @@ const userSchema = new mongoose.Schema(
     desc: {
       type: String,
       max: 50,
+      trim: true,
     },
     city: {
       type: String,
       max: 50,
+      trim: true,
     },
     from: {
       type: String,
       max: 50,
+      trim: true,
     },
     relationship: {
       type: Number,

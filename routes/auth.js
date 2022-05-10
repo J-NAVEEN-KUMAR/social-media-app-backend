@@ -5,49 +5,54 @@ const bcrypt = require("bcrypt");
 //User Register route
 router.post("/register", async (req, res) => {
   try {
-    //encrypting the password given by the user
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(req.body.password, salt);
-
-    //creating the new user
-    const newUser = await new User({
-      username: req.body.username,
-      email: req.body.email,
-      password: hashedPassword,
-    });
-
-    //save the user into the database and respond
-    const user = await newUser.save();
-    // res.status(200).json(user);
-    res.status(200).send("Registration successful! Please login.");
+    const { name, email, password } = req.body;
+    const check = await User.findOne({ email });
+    if (!check) {
+      const user = new User({
+        name,
+        email,
+        password,
+      });
+      //hashing the password
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(user.password, salt);
+      user.password = hashedPassword;
+      //saving user to database
+      const newUser = await user.save();
+      res.status(200).json(newUser);
+    } else {
+      res
+        .status(400)
+        .json("User with this email already exists. Please login.");
+    }
   } catch (error) {
-    console.log(error);
-    res.status(500).json(error);
+    console.log("ERROR IN REGISTERING THE USER ===>", error);
+    return res.status(400).json("Error in registering the user");
   }
 });
 
 //User Login route
 router.post("/login", async (req, res) => {
   try {
-    //validating the email
-    const user = await User.findOne({ email: req.body.email });
-    !user &&
+    const { email, password } = req.body;
+    const findUser = await User.findOne({ email });
+    if (findUser) {
+      const match = await bcrypt.compare(password, findUser.password);
+      if (match) {
+        res.status(200).json("Login success!");
+      } else {
+        res
+          .status(400)
+          .json("Incorrect password! Check your password and try again.");
+      }
+    } else {
       res
-        .status(404)
-        .json("User with this email doesn't exists. Please register.");
-
-    //comparing the password
-    const validPassword = await bcrypt.compare(
-      req.body.password,
-      user.password
-    );
-    !validPassword && res.status(404).json("The entered password is incorrect");
-
-    //sending response if both username and password matches
-    res.status(200).json("Hurray! Logged in successfully.");
+        .status(400)
+        .json("User doesn't exists with this email. Please register.");
+    }
   } catch (error) {
-    console.log(error);
-    res.status(500).json(error);
+    console.log("ERROR IN USER LOGIN ===>", error);
+    res.status(400).json("Error in user login. Please try login again.");
   }
 });
 
