@@ -22,7 +22,7 @@ app.use(
   })
 );
 app.use(helmet());
-app.use(morgan("common"));
+app.use(morgan("dev"));
 app.use("/images", express.static(path.join(__dirname, "public/images")));
 
 //using multer to upload and store images

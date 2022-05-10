@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 //User Register route
 router.post("/register", async (req, res) => {
@@ -36,10 +37,17 @@ router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
     const findUser = await User.findOne({ email });
+    // console.log("USER ===>", findUser);
     if (findUser) {
       const match = await bcrypt.compare(password, findUser.password);
       if (match) {
-        res.status(200).json("Login success!");
+        //Generate a token and send token and user as response to the client
+        let token = jwt.sign({ _id: findUser._id }, process.env.JWT_SECRET, {
+          expiresIn: "1d",
+        });
+        const { password, createdAt, updatedAt, ...userInfo } = findUser._doc;
+        // console.log(userInfo);
+        res.status(200).json({ token, userInfo });
       } else {
         res
           .status(400)
