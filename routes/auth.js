@@ -51,9 +51,9 @@ router.post("/login", async (req, res) => {
         let token = jwt.sign({ _id: findUser._id }, process.env.JWT_SECRET, {
           expiresIn: "1d",
         });
-        const { password, createdAt, updatedAt, ...userInfo } = findUser._doc;
+        const { password, createdAt, updatedAt, ...user } = findUser._doc;
         // console.log(userInfo);
-        res.status(200).json({ token, userInfo });
+        res.status(200).json({ token, user });
       } else {
         res
           .status(400)
